@@ -5,6 +5,8 @@ import com.deepak.prodReadyFeatures.prod_ready_features.clients.EmployeeClient;
 import com.deepak.prodReadyFeatures.prod_ready_features.dto.EmployeeDto;
 import com.deepak.prodReadyFeatures.prod_ready_features.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -18,19 +20,28 @@ import java.util.List;
 @Service
 public class EmployeeClientImplementation implements EmployeeClient {
 
+    Logger log= LoggerFactory.getLogger(EmployeeClientImplementation.class);
+
     private final RestClient restClient;
     @Override
     public List<EmployeeDto> getAllEmployee() {
 
+        log.trace("Trying to retrieve all employees");
         try {
             ApiResponse<List<EmployeeDto>> employeeDtoList = restClient.get()
                     .uri("employees")
                     .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError,(req, res)-> {
+                        log.error(new String(res.getBody().readAllBytes()));
+                        throw new ResourceNotFoundException("Could not get the employee");
+                    })
                     .body(new ParameterizedTypeReference<>() {
                     });
-
+            log.debug("Successfult retrieved all employees");
+            log.trace("Retrieved employees list in getAllEmployees: {}", employeeDtoList.getData());
             return employeeDtoList.getData();
         }catch (Exception e){
+            log.error("Exception occured in getAllEmployees", e);
             throw new RuntimeException(e);
         }
     }
