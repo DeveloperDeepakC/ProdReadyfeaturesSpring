@@ -2,10 +2,12 @@ package com.deepak.prodReadyFeatures.prod_ready_features.services;
 
 import com.deepak.prodReadyFeatures.prod_ready_features.dto.PostDto;
 import com.deepak.prodReadyFeatures.prod_ready_features.entities.PostEntity;
+import com.deepak.prodReadyFeatures.prod_ready_features.entities.User;
 import com.deepak.prodReadyFeatures.prod_ready_features.exceptions.ResourceNotFoundException;
 import com.deepak.prodReadyFeatures.prod_ready_features.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,6 +41,8 @@ public class PostServiceImplementation implements PostService{
 
     @Override
     public PostDto getPostById(Long postId) {
+        User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         PostEntity postEntity= postRepository
                 .findById(postId)
                 .orElseThrow(()->new ResourceNotFoundException("Post not found with id: "+postId));
